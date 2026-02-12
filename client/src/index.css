@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* ===============================
+   THEME (Tailwind 4.1)
+   =============================== */
+@theme {
+  --color-tavern-950: #120e0b;
+  --color-tavern-900: #1a1410;
+  --color-tavern-800: #241b15;
+
+  --color-wood-900: #2a170c;
+  --color-wood-800: #3a2313;
+  --color-wood-700: #4a2f1a;
+
+  --color-candle-300: #f7c06d;
+  --color-candle-400: #e7a84f;
+
+  --color-dark-candle-300: #c07b13;
+  --color-dark-candle-400: #6f4200;
+
+  --color-parchment-50: #fbf6ee;
+  --color-parchment-100: #f2eadf;
+
+  --color-danger-500: #8b2f2f;
+  --color-danger-600: #762727;
+
+  --color-ink-900: #1b1a18;
+
+  --font-display: "Cinzel", ui-serif, Georgia, serif;
+  --font-text: "IM Fell English", ui-serif, Georgia, serif;
+
+  --radius-tavern: 18px;
+}
+
+/* ===============================
+   BASE
+   =============================== */
+@layer base {
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  body {
+    @apply min-h-dvh bg-tavern-950 text-parchment-50 antialiased;
+    font-family: var(--font-text);
+    overflow-x: hidden;
+  }
+}
+
+
+
+/* ===============================
+   COMPONENTS
+   =============================== */
+@layer components {
+
+  /* ---- BUTTON BASE ---- */
+  .btn {
+    @apply
+    inline-flex
+    items-center
+    justify-center
+    gap-2
+    px-4
+    py-2
+    rounded-xl
+    font-semibold
+    select-none
+    transition
+    active:translate-y-[1px];
+  }
+
+  /* ---- BUTTON VARIANTS ---- */
+  .btn-primary {
+    @apply
+    inline-flex
+    items-center
+    justify-center
+    gap-2
+    px-4
+    py-2
+    rounded-xl
+    font-semibold
+    select-none
+    transition
+    active:translate-y-[1px]
+    bg-candle-400
+    text-ink-900
+    hover:bg-candle-300;
+  }
+
+  .btn-danger {
+    @apply
+    inline-flex
+    items-center
+    justify-center
+    gap-2
+    px-4
+    py-2
+    rounded-xl
+    font-semibold
+    select-none
+    transition
+    active:translate-y-[1px]
+    bg-danger-500
+    text-parchment-50
+    hover:bg-danger-600;
+  }
+
+  /* ---- PANELS ---- */
+  .panel {
+    @apply
+    bg-parchment-100
+    text-ink-900
+    rounded-[var(--radius-tavern)]
+    border
+    border-wood-700/30
+    p-4;
+  }
+
+  /* ---- TABLE ---- */
+  .bg-table {
+    @apply
+    bg-wood-900
+    rounded-[var(--radius-tavern)]
+    overflow-hidden
+    relative;
+
+    background-image:
+      radial-gradient(circle at 50% 40%, rgba(231,168,79,.18), transparent 60%),
+      radial-gradient(circle at 50% 40%, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 80%);
+  }
+}
