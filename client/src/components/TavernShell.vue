@@ -1,15 +1,55 @@
 <script setup lang="ts">
+import { ref, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import UiButton from './UiButton.vue'
-import {useAuthStore} from "@/stores/auth.ts";
+import { useAuthStore } from '@/stores/auth.ts'
 
-const props = withDefaults(defineProps<{ withHeader?: boolean, withFooter?: boolean }>(), {
+const props = withDefaults(defineProps<{ withHeader?: boolean; withFooter?: boolean }>(), {
   withHeader: true,
   withFooter: true,
 })
 
-const {user, logout} = useAuthStore()
+const router = useRouter()
+const auth = useAuthStore()
+const user = auth.user
+const logout = auth.logout
+const balance = user?.balance
 
-console.log(user)
+const menuOpen = ref(false)
+const menuWrapRef = ref<HTMLElement | null>(null)
+
+const closeMenu = () => (menuOpen.value = false)
+const toggleMenu = () => (menuOpen.value = !menuOpen.value)
+
+const onDocPointerDown = (e: PointerEvent) => {
+  if (!menuOpen.value) return
+  const el = menuWrapRef.value
+  if (!el) return
+  if (e.target instanceof Node && !el.contains(e.target)) closeMenu()
+}
+
+const onDocKeyDown = (e: KeyboardEvent) => {
+  if (!menuOpen.value) return
+  if (e.key === 'Escape') closeMenu()
+}
+
+document.addEventListener('pointerdown', onDocPointerDown)
+document.addEventListener('keydown', onDocKeyDown)
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', onDocPointerDown)
+  document.removeEventListener('keydown', onDocKeyDown)
+})
+
+const goProfile = async () => {
+  closeMenu()
+  await router.push('/profile')
+}
+
+const doLogout = () => {
+  closeMenu()
+  logout()
+}
 
 </script>
 
@@ -32,9 +72,64 @@ console.log(user)
         </div>
       </div>
 
-      <div class="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
-        <span class="chip" v-if="user">👤 {{ user.username }}</span>
+      <div class="flex items-center gap-2 flex-wrap justify-start sm:justify-end text-xl">
+        <div v-if="auth.isLoggedIn" ref="menuWrapRef" class="relative">
+          <button
+            type="button"
+            class="chip flex items-center gap-2 select-none hover:brightness-110 transition"
+            @click="toggleMenu"
+            :aria-expanded="menuOpen"
+            aria-haspopup="menu"
+          >
+            <span>👤 {{ user.username }}</span>
 
+            <span class="mx-1 h-4 w-px bg-parchment-50/20"></span>
+
+            <span class="flex items-center gap-1 text-parchment-50/90">
+              <span class="tabular-nums text-md font-bold">{{ balance?.amount ?? 0 }}</span>
+              <img
+                width="25px"
+                height="25px"
+                alt="balance"
+                v-if="balance?.currency?.icon" :src="balance.currency.icon"
+              />
+            </span>
+
+            <span class="ml-1 text-parchment-50/60">▾</span>
+          </button>
+
+          <!-- Popover -->
+          <transition name="fade-pop">
+            <div
+              v-if="menuOpen"
+              class="absolute right-0 mt-2 w-44 rounded-2xl border border-parchment-50/15
+                     bg-[#0f0c07]/95 backdrop-blur-md shadow-xl overflow-hidden"
+              role="menu"
+            >
+              <button
+                type="button"
+                class="w-full text-left px-3 py-2 text-parchment-50/90 hover:bg-parchment-50/10 transition"
+                role="menuitem"
+                @click="goProfile"
+              >
+                Profile
+              </button>
+
+              <div class="h-px bg-parchment-50/10"></div>
+
+              <button
+                type="button"
+                class="w-full text-left px-3 py-2 text-parchment-50/90 hover:bg-parchment-50/10 transition"
+                role="menuitem"
+                @click="doLogout"
+              >
+                Logout
+              </button>
+            </div>
+          </transition>
+        </div>
+
+        <!-- GUEST -->
         <RouterLink v-if="!user" to="/login">
           <UiButton variant="ghost">Login</UiButton>
         </RouterLink>
@@ -42,10 +137,6 @@ console.log(user)
         <RouterLink v-if="!user" to="/register">
           <UiButton variant="primary">Register</UiButton>
         </RouterLink>
-
-        <UiButton v-if="user" variant="ghost" @click="logout()">
-          Logout
-        </UiButton>
       </div>
     </header>
 
@@ -58,3 +149,15 @@ console.log(user)
     </footer>
   </div>
 </template>
+
+<style scoped>
+.fade-pop-enter-active,
+.fade-pop-leave-active {
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.fade-pop-enter-from,
+.fade-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+}
+</style>

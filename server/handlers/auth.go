@@ -4,7 +4,6 @@ import (
 	"app/config"
 	"app/models"
 	"app/utils"
-	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"

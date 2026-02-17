@@ -19,6 +19,12 @@ func SetupRoutes(app *fiber.App) {
 	// Profile
 	api.Get("/profile", middlewares.Protected(), handlers.GetProfile)
 
+	// Games
+	api.Post("/games", middlewares.Protected(), handlers.CreateGame)
+
+	// Currencies
+	api.Get("/currencies", handlers.GetCurrencies)
+
 	// 404
 	app.Use(func(c fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNotFound) // => 404 "Not Found"

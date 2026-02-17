@@ -24,6 +24,6 @@ func main() {
 
 	database.Connect()
 	routes.SetupRoutes(app)
-
-	log.Fatal(app.Listen(":" + config.Config("APP_PORT")))
+	
+	log.Fatal(app.Listen(":" + config.Config("API_PORT")))
 }

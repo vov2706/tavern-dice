@@ -15,33 +15,53 @@ import (
 )
 
 func GetProfile(c fiber.Ctx) error {
+	user, err := GetAuthUser(c)
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(responses.UserResponse{
+		Data: responses.NewUserResource(*user),
+	})
+}
+
+func GetAuthUser(c fiber.Ctx) (*models.User, error) {
 	token := jwtware.FromContext(c)
 
 	if token == nil {
-		return fiber.ErrUnauthorized
+		return nil, fiber.ErrUnauthorized
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 	userId, ok := claims["sub"].(float64)
 
 	if !ok {
-		return fiber.ErrUnauthorized
+		return nil, fiber.ErrUnauthorized
 	}
 
 	user, err := GetUser(uint(userId))
 
 	if err != nil {
-		return fiber.ErrUnauthorized
+		return nil, fiber.ErrUnauthorized
 	}
 
-	return c.JSON(responses.UserResponse{
-		Data: responses.NewUserResource(user),
-	})
+	return &user, nil
 }
 
 func GetUser(id uint) (models.User, error) {
 	ctx := context.Background()
-	user, err := gorm.G[models.User](database.DB).Where("id = ?", id).First(ctx)
+	user, err := gorm.G[models.User](database.DB).
+		Where("id = ?", id).
+		Preload("Balances", func(db gorm.PreloadBuilder) error {
+			subQuery := database.DB.Table("currencies").Select("id").Where("slug = ?", models.GOLD)
+
+			db.Where("currency_id = (?)", subQuery)
+
+			return nil
+		}).
+		Preload("Balances.Currency", nil).
+		First(ctx)
 
 	if err != nil {
 		return models.User{}, errors.New("user not found")
@@ -52,13 +72,21 @@ func GetUser(id uint) (models.User, error) {
 
 func CreateUser(username, password string) (models.User, error) {
 	ctx := context.Background()
+	currency, err := gorm.G[models.Currency](database.DB).Where("slug = ?", models.GOLD).First(ctx)
+
+	if err != nil {
+		return models.User{}, err
+	}
 
 	user := models.User{
 		Username: username,
 		Password: password,
+		Balances: []models.Balance{
+			{CurrencyID: currency.ID, Amount: 1000},
+		},
 	}
 
-	err := gorm.G[models.User](database.DB).Create(ctx, &user)
+	err = gorm.G[models.User](database.DB).Create(ctx, &user)
 
 	if err != nil {
 		return models.User{}, err

@@ -25,14 +25,35 @@ func Connect() {
 	fmt.Println("Connected to database")
 
 	migrateAll()
+	setupRelations()
+	SeedAll()
 }
 
 func migrateAll() {
-	err := DB.AutoMigrate(&models.User{})
+	err := DB.AutoMigrate(
+		&models.User{},
+		&models.Currency{},
+		&models.Balance{},
+		&models.GameUser{},
+	)
 
 	if err != nil {
 		panic(fmt.Errorf("failed to migrate database: %w", err))
 	}
 
 	fmt.Println("Database migrated successfully")
+}
+
+func setupRelations() {
+	err := DB.SetupJoinTable(&models.Game{}, "Users", &models.GameUser{})
+
+	if err != nil {
+		panic(fmt.Errorf("failed to setup relations: %w", err))
+	}
+
+	err = DB.SetupJoinTable(&models.User{}, "Games", &models.GameUser{})
+
+	if err != nil {
+		panic(fmt.Errorf("failed to setup relations: %w", err))
+	}
 }

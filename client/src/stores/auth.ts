@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
-import type {User} from "@/api";
 import fetchApi from "@/packages/fetchApi.ts";
-import {getProfile} from "@/api/user.ts";
+import {getProfile, type User} from "@/api/user.ts";
 import router from "@/routes";
 import {useToast} from "@/composables/useToast.ts";
 
@@ -14,7 +13,7 @@ interface LoginResponse {
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: null as User | null,
+    user: (null as User | null),
     token: localStorage.getItem(ACCESS_TOKEN) || "",
   }),
 

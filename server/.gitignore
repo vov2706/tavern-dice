@@ -1,1 +1,5 @@
-config/.env
+.env
+fiber.db
+go.sum
+go.mod
+tmp/*
