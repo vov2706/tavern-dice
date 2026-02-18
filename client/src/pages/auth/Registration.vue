@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import TavernShell from '../../components/TavernShell.vue'
 import UiButton from '../../components/UiButton.vue'
 import {useAuthStore} from "@/stores/auth.ts";
 
 const auth = useAuthStore()
-const router = useRouter()
 
 const username = ref('')
 const password = ref('')
+const loading = ref(false)
 const confirmPassword = ref('')
 
 const localError = ref('')
@@ -22,11 +21,11 @@ const submit = async () => {
     return
   }
 
-  await auth.register(username.value.trim(), password.value)
+  loading.value = true
 
-  // if (session.me) {
-  //   router.push('/')
-  // }
+  auth.register(username.value.trim(), password.value)
+    .catch(e => localError.value = e.message)
+    .finally(() => loading.value = false)
 }
 </script>
 
@@ -39,12 +38,12 @@ const submit = async () => {
           Create an account to track wins, rating and leaderboard stats.
         </div>
 
-      <!--      <div-->
-      <!--        v-if="localError || session.error"-->
-      <!--        class="mt-4 rounded-xl border border-danger-500/40 bg-danger-500/10 p-3 text-sm"-->
-      <!--      >-->
-      <!--        {{ localError || session.error }}-->
-      <!--      </div>-->
+            <div
+              v-if="localError"
+              class="mt-4 rounded-xl border border-danger-500/40 bg-danger-500/10 p-3 text-sm"
+            >
+              {{ localError }}
+            </div>
 
         <form @submit.prevent="submit" class="flex flex-col gap-2 mt-3">
           <div class="text-md">
@@ -65,7 +64,7 @@ const submit = async () => {
               autocomplete="new-password"
               class="mt-1 w-full rounded-xl border border-wood-700/35 bg-parchment-50 px-4 py-2 text-ink-900 outline-none
                focus:ring-2 focus:ring-candle-400/60"
-              placeholder="••••"
+              placeholder="••••••••"
               required
             />
           </div>
@@ -77,7 +76,7 @@ const submit = async () => {
               autocomplete="new-password"
               class="mt-1 w-full rounded-xl border border-wood-700/35 bg-parchment-50 px-4 py-2 text-ink-900 outline-none
                focus:ring-2 focus:ring-candle-400/60"
-              placeholder="••••"
+              placeholder="••••••••"
               required
             />
           </div>
@@ -86,8 +85,8 @@ const submit = async () => {
               <UiButton
                 type="submit"
                 variant="primary"
+                :disabled="loading"
               >
-<!--                {{ // session.loading ? 'Creating…' : 'Create account' }}-->
                 {{ 'Create account' }}
               </UiButton>
 

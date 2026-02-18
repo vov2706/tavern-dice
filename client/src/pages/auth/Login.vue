@@ -6,10 +6,18 @@ import {useAuthStore} from "@/stores/auth.ts";
 
 const username = ref('')
 const password = ref('')
+const error = ref('')
+const loading  = ref(false)
 
 const submit = async () => {
   const auth = useAuthStore()
-  await auth.login(username.value, password.value)
+
+  loading.value = true
+
+  auth.login(username.value, password.value)
+    .catch(err => error.value = err)
+    .finally(() => loading.value = false)
+
 }
 </script>
 
@@ -19,9 +27,9 @@ const submit = async () => {
       <div class="panel w-full max-w-2xl">
         <div class="font-display text-xl text-center">Login</div>
 
-        <!--        <div v-if="session.error" class="mt-3 rounded-xl border border-danger-500/40 bg-danger-500/10 p-3 text-sm">-->
-        <!--          {{ session.error }}-->
-        <!--        </div>-->
+        <div v-if="error" class="mt-3 rounded-xl border border-danger-500/40 bg-danger-500/10 p-3 text-sm">
+          {{ error }}
+        </div>
 
         <form @submit.prevent="submit" class="flex flex-col gap-2 mt-3">
           <div class="text-md">
@@ -38,14 +46,13 @@ const submit = async () => {
               type="password"
               class="mt-1 w-full rounded-xl border border-wood-700/35 bg-parchment-50 px-4 py-2 text-ink-900 outline-nonefocus:ring-2 focus:ring-candle-400/60"
               v-model="password"
-              placeholder="••••"
+              placeholder="••••••••"
               required
             />
           </div>
           <div class="mt-4 flex gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex gap-2">
-              <UiButton variant="primary" type="submit">
-                <!--              {{ session.loading ? 'Loading…' : 'Login' }}-->
+              <UiButton variant="primary" type="submit" >
                 {{ 'Login' }}
               </UiButton>
               <RouterLink to="/">

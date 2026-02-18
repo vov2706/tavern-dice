@@ -26,5 +26,7 @@ export interface Game {
 export const createGame = async (input: CreateGameInput): Promise<Game> => {
   const data = await fetchApi.post('/games', input)
 
+  console.log(data)
+
   return data.data;
 }

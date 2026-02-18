@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { onClickOutside } from '@vueuse/core'
+import { onClickOutside } from "@vueuse/core"
 
 export type Option = {
   label: string
@@ -9,28 +9,28 @@ export type Option = {
 }
 
 const props = defineProps<{
-  modelValue: string | number | null
   options: Option[]
   placeholder?: string
 }>()
 
-const emit = defineEmits<{
-  (e: "update:modelValue", value: string | number): void
-}>()
+// v-model для компонента
+const model = defineModel<string | number | null>({ default: null })
 
 const isOpen = ref(false)
 const root = ref<HTMLElement | null>(null)
 
+const isSame = (a: string | number | null, b: string | number) =>
+  a !== null && String(a) === String(b)
+
 const selected = computed(() =>
-  props.options.find(o => o.value === props.modelValue)
+  props.options.find(o => isSame(model.value, o.value))
 )
 
 const selectOption = (option: Option) => {
-  emit("update:modelValue", option.value)
+  model.value = option.value
   isOpen.value = false
 }
 
-// клік поза компонентом
 onClickOutside(root, () => {
   isOpen.value = false
 })
@@ -38,13 +38,13 @@ onClickOutside(root, () => {
 
 <template>
   <div ref="root" class="relative w-full">
-    <!-- Trigger -->
     <button
       type="button"
-      @click="isOpen = !isOpen"
+      @click.stop="isOpen = !isOpen"
       class="w-full rounded-xl border border-wood-700/35 bg-parchment-50/70 px-4 py-2 text-base text-left flex items-center justify-between transition hover:border-candle-400/60"
     >
-      <div class="flex items-center gap-2">
+      <!-- ВАЖЛИВО: не div всередині button -->
+      <span class="flex items-center gap-2 min-w-0">
         <img
           v-if="selected?.icon"
           :src="selected.icon"
@@ -54,17 +54,13 @@ onClickOutside(root, () => {
         <span class="truncate">
           {{ selected?.label || placeholder || "Select option" }}
         </span>
-      </div>
+      </span>
 
-      <span
-        class="transition-transform duration-200"
-        :class="{ 'rotate-180': isOpen }"
-      >
+      <span class="transition-transform duration-200" :class="{ 'rotate-180': isOpen }">
         ▾
       </span>
     </button>
 
-    <!-- Dropdown -->
     <transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 -translate-y-1"
@@ -76,20 +72,19 @@ onClickOutside(root, () => {
       <div
         v-if="isOpen"
         class="absolute z-50 mt-2 w-full rounded-xl border border-wood-700/35 bg-parchment-50 shadow-xl backdrop-blur"
+        @click.stop
       >
-        <div
+        <button
           v-for="option in options"
-          :key="option.value"
-          @click="selectOption(option)"
-          class="px-4 py-2 hover:bg-wood-700/10 text-base cursor-pointer flex items-center gap-2 transition"
+          :key="String(option.value)"
+          type="button"
+          class="w-full text-left px-4 py-2 hover:bg-wood-700/10 text-base cursor-pointer flex items-center gap-2 transition"
+          @mousedown.prevent
+          @click.prevent="selectOption(option)"
         >
-          <img
-            v-if="option.icon"
-            :src="option.icon"
-            class="w-5 h-5"
-          />
-          {{ option.label }}
-        </div>
+          <img v-if="option.icon" :src="option.icon" class="w-5 h-5" />
+          <span class="truncate">{{ option.label }}</span>
+        </button>
       </div>
     </transition>
   </div>

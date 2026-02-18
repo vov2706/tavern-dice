@@ -5,7 +5,7 @@ import UiButton from '../../components/UiButton.vue'
 import { useRouter } from 'vue-router'
 import {type Currency, getCurrencies} from "@/api/common.ts";
 import UiSelect from "@/components/UiSelect.vue";
-import {createGame, type Game, JoinType} from "@/api/game.ts";
+import {createGame, type CreateGameInput, type Game, JoinType} from "@/api/game.ts";
 
 const types = [
   {slug: JoinType.ANYONE, title: 'Anyone can join', subtitle: 'Visible & open'},
@@ -39,12 +39,14 @@ const createRoom = async () => {
   error.value = ''
   loading.value = true
   try {
-    game.value = await createGame({
+    const input: CreateGameInput = {
       currency_id: currencyId.value,
       bet: bet.value,
       winning_points: winningPoints.value,
       join_type: joinType.value,
-    })
+    }
+
+    game.value = await createGame(input)
 
     await router.push(`/lobby/${game.value.code}`)
   } catch (e: any) {
@@ -106,7 +108,7 @@ onMounted(async () => {
 
               <div class="mt-2">
                 <UiSelect
-                  :model-value="currencyId"
+                  v-model="currencyId"
                   :options="currencies.map((c: Currency) => ({label: c.name, value: c.id}))"
                 />
                 <div v-if="!currencyValid" class="mt-1 text-base text-danger-600">
@@ -209,8 +211,8 @@ onMounted(async () => {
               </div>
               <div class="chip">
                 🔒 Join:
-                <span class="font-bold underline" v-if="joinType === 'anyone'">Anyone can join</span>
-                <span class="font-bold underline" v-else-if="joinType === 'friends'">Only friends</span>
+                <span class="font-bold underline" v-if="joinType === JoinType.ANYONE">Anyone can join</span>
+                <span class="font-bold underline" v-else-if="joinType === JoinType.FRIENDS">Only friends</span>
                 <span class="font-bold underline" v-else>Join by link</span>
               </div>
             </div>

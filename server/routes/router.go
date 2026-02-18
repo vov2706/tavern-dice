@@ -1,8 +1,11 @@
 package routes
 
 import (
-	"app/handlers"
-	"app/middlewares"
+	"app/database"
+	"app/http/handlers"
+	"app/http/middlewares"
+	"app/repositories"
+	"app/services"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
@@ -20,7 +23,12 @@ func SetupRoutes(app *fiber.App) {
 	api.Get("/profile", middlewares.Protected(), handlers.GetProfile)
 
 	// Games
-	api.Post("/games", middlewares.Protected(), handlers.CreateGame)
+	balanceRepo := repositories.NewBalanceRepository(database.DB)
+	gameRepo := repositories.NewGameRepository(database.DB)
+	currencyRepo := repositories.NewCurrencyRepository(database.DB)
+	gameService := services.NewGameService(balanceRepo, currencyRepo, gameRepo)
+	gameHandler := handlers.NewGameHandler(gameService)
+	api.Post("/games", middlewares.Protected(), gameHandler.CreateGame)
 
 	// Currencies
 	api.Get("/currencies", handlers.GetCurrencies)

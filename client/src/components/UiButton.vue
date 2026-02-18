@@ -5,10 +5,12 @@ const props = withDefaults(defineProps<{
   variant?: 'primary' | 'danger' | 'ghost'
   block?: boolean
   type?: 'button' | 'submit' | 'reset'
+  disabled?: boolean
 }>(), {
   variant: 'primary',
   block: false,
   type: 'button',
+  disabled: false,
 })
 
 const cls = computed(() => {
@@ -32,7 +34,7 @@ const cls = computed(() => {
 </script>
 
 <template>
-  <button :type="type" :class="cls">
+  <button :type="type" :class="cls" :disabled="disabled">
     <slot />
   </button>
 </template>
